@@ -7,75 +7,105 @@
     <title>Vite App</title>
     <style>
       h1 {
-        text-align: center; color: blue;
+        text-align: center;
+        color: blue;
       }
 
-      #wrapper { text-align: center; padding-top: 200px;}
-      #carImage {width: 80%;}
+      #wrapper {
+        text-align: center;
+        padding-top: 200px;
+      }
+
+      #carImage {
+        width: 80%;
+      }
+
+      #btn-play {
+        display: block;
+        margin: 20px auto;
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+      }
     </style>
   </head>
   <body>
     <div id="wrapper">
       <h1>Terry's 360 practice</h1>
       <img src="./public/assets/toy-1.png" alt="" id="carImage" draggable="false">
+      <button id="btn-play">Play</button>
     </div>
 
+    <script type="module">
+      const wrapper = document.querySelector('#wrapper');
+      const carImage = document.querySelector('#carImage');
+      const playButton = document.querySelector('#btn-play');
 
-    <!-- <script type="module" src="main.js"></script> -->
-     <script type="module">      
+      let currentFrame = 1;
+      let intervalId;
 
-const wrapper = document.querySelector('#wrapper');
-const carImage = document.querySelector('#carImage');
+      const totalFrames = 52;
+      const frameRate = 30;
 
-// 과거에 돌린 정도
-let save = 0;
-// 이번에 돌린 정도
-let dragged = 0;
-// 합계(save + drag)
-let sum = 0;
-
-const sensitivity = 40;
-
-let clickedSrc = "";
-let changeSrc = "";
-
-carImage.addEventListener('mousedown', function(e){
-    const x = e.clientX;
-
-    clickedSrc = carImage.src;
-
-    wrapper.addEventListener("mousemove", rotate);
-
-    function rotate(e) {
-        dragged = parseInt((e.clientX - x) / sensitivity);
-
-        sum = save + dragged;
-
-        if (sum < 1) {
-            sum = 52 + (sum % 52);
-        } else if (sum > 52) {
-            sum = sum % 52;
+      playButton.addEventListener('click', function () {
+        if (intervalId) {
+          clearInterval(intervalId);
         }
 
-        changeSrc = clickedSrc.replace(/toy-\d+/, `toy-${sum}`);
-        console.log(changeSrc);
+        intervalId = setInterval(() => {
+          currentFrame++;
+          if (currentFrame > totalFrames) {
+            currentFrame = 1; 
+          }
+          const newSrc = `./public/assets/toy-${currentFrame}.png`;
+          carImage.src = newSrc;
+        }, frameRate);
+      });
 
-        carImage.src = changeSrc;
+      let save = 0;
+      let dragged = 0;
+      let sum = 0;
 
-        wrapper.style.cursor = "grabbing";
-    }
+      const sensitivity = 40;
 
-    window.addEventListener("mouseup", function() {
-        wrapper.removeEventListener("mousemove", rotate);
+      let clickedSrc = "";
+      let changeSrc = "";
 
-        wrapper.style.cursor = "default";
+      carImage.addEventListener('mousedown', function (e) {
+        clearInterval(intervalId); // 드래그 시 애니메이션 중지
 
-        save = sum;
-        dragged = 0;
-    });
+        const x = e.clientX;
 
-});
+        clickedSrc = carImage.src;
 
-     </script>
+        wrapper.addEventListener("mousemove", rotate);
+
+        function rotate(e) {
+          dragged = parseInt((e.clientX - x) / sensitivity);
+
+          sum = save + dragged;
+
+          if (sum < 1) {
+            sum = totalFrames + (sum % totalFrames);
+          } else if (sum > totalFrames) {
+            sum = sum % totalFrames;
+          }
+
+          changeSrc = clickedSrc.replace(/toy-\d+/, `toy-${sum}`);
+          carImage.src = changeSrc;
+
+          wrapper.style.cursor = "grabbing";
+        }
+
+        window.addEventListener("mouseup", function () {
+          wrapper.removeEventListener("mousemove", rotate);
+
+          wrapper.style.cursor = "default";
+
+          save = sum;
+          dragged = 0;
+        });
+      });
+    </script>
   </body>
 </html>
